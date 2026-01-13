@@ -39,7 +39,7 @@ fn modis_name_fmt(scan_time: DateTime<Utc>, is_aqua: bool) -> String {
     let scan_time = scan_time
         .with_minute(rounded_minute)
         .unwrap();
-    let date_time = scan_time.format("%Y%j.%H%M").to_string();
+    let date_time = scan_time.format(".A%Y%j.%H%M").to_string();
     if is_aqua {
         format!("MYD021KM{}", date_time)
     } else {
