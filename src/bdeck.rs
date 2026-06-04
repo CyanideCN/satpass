@@ -1,6 +1,6 @@
+use chrono::NaiveDateTime;
 use std::fs::read_to_string;
 use std::io;
-use chrono::{NaiveDateTime};
 
 pub struct BDeck {
     pub time: Vec<f64>,
@@ -28,47 +28,31 @@ impl BDeck {
                 continue;
             }
             last_time = line_time;
-            let timestamp = NaiveDateTime::parse_from_str(
-                &format!("{}{}", line_time, "00"), "%Y%m%d%H%M",
-            ).unwrap().and_utc().timestamp() as f64;
-            let line_len = line.len() - 1;
-            let temp_wind: &str;
-            if line_len < 51 {
-                // Fix case that a space is missing in short-style bdeck
-                temp_wind = &line[line_len - 3..];
+            let timestamp = NaiveDateTime::parse_from_str(&format!("{line_time}00"), "%Y%m%d%H%M")
+                .unwrap()
+                .and_utc()
+                .timestamp() as f64;
+            let wind_field = if line.len() < 52 {
+                &line[line.len() - 4..]
             } else {
-                temp_wind = &line[48..51];
-            }
-            let mut wind: i32 = temp_wind
-                .strip_prefix(" ")
-                .unwrap_or(temp_wind)
-                .parse()
-                .unwrap_or(0);
-            if wind == 999 {
-                wind = 0;
-            }
+                &line[48..51]
+            };
+            let wind = wind_field.trim().parse::<i32>().unwrap();
+            let wind = if wind == 999 { 0 } else { wind };
             let lat_str = &line[35..39];
-            let lat_string: String = lat_str[..3]
-                .chars()
-                .filter(|c| !c.is_whitespace())
-                .collect();
-            let mut lat: f32 = lat_string.parse::<f32>().unwrap() / 10.;
+            let mut lat = lat_str[..3].trim().parse::<f64>().unwrap() / 10.0;
             if &lat_str[3..4] == "S" {
-                lat *= -1.
+                lat *= -1.0;
             }
             let lon_str = &line[41..46];
-            let lon_string: String = lon_str[..4]
-                .chars()
-                .filter(|c| !c.is_whitespace())
-                .collect();
-            let mut lon: f32 = lon_string.parse::<f32>().unwrap() / 10.;
+            let mut lon = lon_str[..4].trim().parse::<f64>().unwrap() / 10.0;
             if &lon_str[4..5] == "W" {
-                lon = 360. - lon;
+                lon = 360.0 - lon;
             }
             time.push(timestamp);
             intensity.push(wind as f64);
-            latitude.push(lat as f64);
-            longitude.push(lon as f64);
+            latitude.push(lat);
+            longitude.push(lon);
         }
 
         Ok(BDeck {
@@ -91,12 +75,9 @@ impl BDeck {
             return None;
         }
 
-        let mut i = (*index).min(self.time.len().saturating_sub(1));
+        let mut i = (*index).min(self.time.len() - 1);
         if query_time < self.time[i] {
-            match self.time.binary_search_by(|t| {
-                t.partial_cmp(&query_time)
-                    .unwrap_or(std::cmp::Ordering::Less)
-            }) {
+            match self.time.binary_search_by(|t| t.total_cmp(&query_time)) {
                 Ok(found) => {
                     *index = found;
                     return Some((

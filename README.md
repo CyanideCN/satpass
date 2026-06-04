@@ -22,6 +22,29 @@ thresholds.
 cargo build --release
 ```
 
+## Python
+Build the Python wheel with maturin:
+```bash
+maturin build --release
+```
+
+Python inputs and outputs use `datetime`; the binding converts to Unix timestamps
+internally.
+```python
+from datetime import datetime, timezone
+import satpass
+
+catalog = satpass.TleCatalog.from_file("tle.txt")
+passes = catalog.get_passes(
+    datetime(2013, 11, 7, 0, 0, tzinfo=timezone.utc),
+    6 * 3600,
+    130.0,
+    10.0,
+)
+
+tc_passes = catalog.find_tc_passes("bwp312013.dat")
+```
+
 ## Usage
 ```bash
 satpass <TLE_FILE> <BDECK_FILE> [options]
