@@ -10,6 +10,20 @@ pub struct BDeck {
 }
 
 impl BDeck {
+    pub fn from_track(
+        time: Vec<f64>,
+        longitude: Vec<f64>,
+        latitude: Vec<f64>,
+        intensity: Vec<f64>,
+    ) -> Self {
+        Self {
+            time,
+            intensity,
+            latitude,
+            longitude,
+        }
+    }
+
     pub fn from_file(filepath: &str) -> io::Result<Self> {
         let mut time = Vec::new();
         let mut intensity = Vec::new();

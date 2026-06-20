@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import datetime, timezone
 
@@ -23,7 +24,7 @@ class SatPassEvent:
     @classmethod
     def from_native(cls, event: _satpass.SatPassEvent) -> SatPassEvent:
         return cls(
-            cpa_time=_to_datetime(event.cpa_time),
+            cpa_time=_to_datetime(round(event.cpa_time, 0)),
             cpa_distance=event.cpa_distance,
             elevation=event.elevation,
         )
@@ -41,7 +42,7 @@ class TCSatPassEvent:
     @classmethod
     def from_native(cls, event: _satpass.TCSatPassEvent) -> TCSatPassEvent:
         return cls(
-            cpa_time=_to_datetime(event.cpa_time),
+            cpa_time=_to_datetime(round(event.cpa_time, 0)),
             cpa_distance=event.cpa_distance,
             sat_zenith=event.sat_zenith,
             intensity=event.intensity,
@@ -107,7 +108,10 @@ class TleCatalog:
 
     def find_tc_passes(
         self,
-        bdeck_path: str,
+        times: Sequence[datetime],
+        longitudes: Sequence[float],
+        latitudes: Sequence[float],
+        intensities: Sequence[float],
         step_hours: float = 6.0,
         intensity_threshold: float = 100.0,
         distance_threshold: float = 1165.0,
@@ -115,6 +119,26 @@ class TleCatalog:
         return [
             TCSatPassEvent.from_native(event)
             for event in self._inner.find_tc_passes(
+                [_to_timestamp(time) for time in times],
+                list(longitudes),
+                list(latitudes),
+                list(intensities),
+                step_hours,
+                intensity_threshold,
+                distance_threshold,
+            )
+        ]
+
+    def find_tc_passes_from_bdeck(
+        self,
+        bdeck_path: str,
+        step_hours: float = 6.0,
+        intensity_threshold: float = 100.0,
+        distance_threshold: float = 1165.0,
+    ) -> list[TCSatPassEvent]:
+        return [
+            TCSatPassEvent.from_native(event)
+            for event in self._inner.find_tc_passes_from_bdeck(
                 bdeck_path,
                 step_hours,
                 intensity_threshold,

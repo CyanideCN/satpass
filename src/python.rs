@@ -3,7 +3,7 @@ use pyo3::prelude::*;
 use pyo3::types::PyModule;
 
 use crate::orbital::{Orbital, SatPassEvent, TCSatPassEvent};
-use crate::{TcPassOptions, TleCatalog, find_tc_passes_from_bdeck_file};
+use crate::{TcPassOptions, TleCatalog, find_tc_passes_from_bdeck_file, find_tc_passes_from_track};
 
 fn py_value_error(error: impl std::fmt::Display) -> PyErr {
     PyValueError::new_err(error.to_string())
@@ -146,8 +146,27 @@ impl PyTleCatalog {
             .collect()
     }
 
-    #[pyo3(signature = (bdeck_path, step_hours = 6.0, intensity_threshold = 100.0, distance_threshold = 1165.0))]
+    #[allow(clippy::too_many_arguments)]
+    #[pyo3(signature = (time, longitude, latitude, intensity, step_hours = 6.0, intensity_threshold = 100.0, distance_threshold = 1165.0))]
     fn find_tc_passes(
+        &self,
+        time: Vec<f64>,
+        longitude: Vec<f64>,
+        latitude: Vec<f64>,
+        intensity: Vec<f64>,
+        step_hours: f64,
+        intensity_threshold: f64,
+        distance_threshold: f64,
+    ) -> Vec<PyTCSatPassEvent> {
+        let options = TcPassOptions::new(step_hours, intensity_threshold, distance_threshold);
+        find_tc_passes_from_track(&self.catalog, time, longitude, latitude, intensity, options)
+            .iter()
+            .map(PyTCSatPassEvent::from_event)
+            .collect()
+    }
+
+    #[pyo3(signature = (bdeck_path, step_hours = 6.0, intensity_threshold = 100.0, distance_threshold = 1165.0))]
+    fn find_tc_passes_from_bdeck(
         &self,
         bdeck_path: &str,
         step_hours: f64,

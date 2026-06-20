@@ -94,20 +94,19 @@ pub fn find_tc_passes(
                     for refined_event in pass_refined.iter() {
                         if refined_event.cpa_distance <= options.distance_threshold {
                             let mut interp_cpa_index = interp_index;
-                            let (tc_lat, tc_lon, _) = bdeck
-                                .interpolate_with_index(
-                                    refined_event.cpa_time,
-                                    &mut interp_cpa_index,
-                                )
-                                .expect("refined CPA time must be covered by BDeck");
-                            acc.push(TCSatPassEvent {
-                                cpa_time: refined_event.cpa_time,
-                                cpa_distance: refined_event.cpa_distance,
-                                sat_zenith: 90.0 - refined_event.elevation,
-                                intensity: intens_i,
-                                tc_lat,
-                                tc_lon,
-                            });
+                            if let Some((tc_lat, tc_lon, _)) = bdeck.interpolate_with_index(
+                                refined_event.cpa_time,
+                                &mut interp_cpa_index,
+                            ) {
+                                acc.push(TCSatPassEvent {
+                                    cpa_time: refined_event.cpa_time,
+                                    cpa_distance: refined_event.cpa_distance,
+                                    sat_zenith: 90.0 - refined_event.elevation,
+                                    intensity: intens_i,
+                                    tc_lat,
+                                    tc_lon,
+                                });
+                            }
                         }
                     }
                 }
@@ -118,6 +117,18 @@ pub fn find_tc_passes(
         .into_iter()
         .flatten()
         .collect()
+}
+
+pub fn find_tc_passes_from_track(
+    catalog: &TleCatalog,
+    time: Vec<f64>,
+    longitude: Vec<f64>,
+    latitude: Vec<f64>,
+    intensity: Vec<f64>,
+    options: TcPassOptions,
+) -> Vec<TCSatPassEvent> {
+    let bdeck = BDeck::from_track(time, longitude, latitude, intensity);
+    find_tc_passes(catalog, &bdeck, options)
 }
 
 pub fn find_tc_passes_from_bdeck_file(

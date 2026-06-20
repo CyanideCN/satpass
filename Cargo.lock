@@ -367,17 +367,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c33a9471896f1c69cecef8d20cbe2f7accd12527ce60845ff44c153bb2a21b49"
 
 [[package]]
-name = "predict-rs"
-version = "0.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a981d75e5758d12542f3efe3c011fa126341276cc755def012cd84e0c6d8e5c1"
-dependencies = [
- "chrono",
- "libm",
- "sgp4",
-]
-
-[[package]]
 name = "proc-macro2"
 version = "1.0.105"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -500,7 +489,6 @@ dependencies = [
  "chrono",
  "clap",
  "geographiclib-rs",
- "predict-rs",
  "pyo3",
  "rayon",
  "sgp4",

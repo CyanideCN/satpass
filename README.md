@@ -42,7 +42,14 @@ passes = catalog.get_passes(
     10.0,
 )
 
-tc_passes = catalog.find_tc_passes("bwp312013.dat")
+tc_passes = catalog.find_tc_passes_from_bdeck("bwp312013.dat")
+
+track_passes = catalog.find_tc_passes(
+    times=[datetime(2013, 11, 7, 0, 0, tzinfo=timezone.utc)],
+    longitudes=[130.0],
+    latitudes=[10.0],
+    intensities=[120.0],
+)
 ```
 
 ## Usage
